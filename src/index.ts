@@ -1,0 +1,27 @@
+import 'dotenv/config';
+import LyncMQTTClient from "./LyncMQTTClient";
+
+// Check for required environment variables
+const requiredEnvVars = ['MQTT_BROKER_URL', 'LYNC_HOST', 'LYNC_PORT'] as const;
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+    console.error('Missing required environment variables:');
+    missingEnvVars.forEach(envVar => console.error(`  - ${envVar}`));
+    console.error('\nPlease create a .env file based on .env.example');
+    process.exit(1);
+}
+
+const mqttBrokerUrl = process.env.MQTT_BROKER_URL!;
+const lyncHost = process.env.LYNC_HOST!;
+const lyncPort = parseInt(process.env.LYNC_PORT!);
+
+if (isNaN(lyncPort)) {
+    console.error('Invalid LYNC_PORT value. Must be a valid number.');
+    process.exit(1);
+}
+
+console.log(`Connecting to MQTT broker: ${mqttBrokerUrl}`);
+console.log(`Connecting to Lync device: ${lyncHost}:${lyncPort}`);
+
+LyncMQTTClient.CreateClient(mqttBrokerUrl, lyncHost, lyncPort);
