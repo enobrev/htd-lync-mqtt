@@ -68,19 +68,7 @@ export default class Lync {
         this.events = new TypedEventEmitter<EventTypes>();
         this.LC     = new Connector(host, port);
 
-        const zones = new Map<Zone, StatusZone>();
-        zones.set(Zone._01, {number: 1,  name: "Zone 1",  power: false, mute: false, dnd: false, source: 1, volume: 0, treble: 0, bass: 0, balance: 0, sources: new Map()});
-        zones.set(Zone._02, {number: 2,  name: "Zone 2",  power: false, mute: false, dnd: false, source: 1, volume: 0, treble: 0, bass: 0, balance: 0, sources: new Map()});
-        zones.set(Zone._03, {number: 3,  name: "Zone 3",  power: false, mute: false, dnd: false, source: 1, volume: 0, treble: 0, bass: 0, balance: 0, sources: new Map()});
-        zones.set(Zone._04, {number: 4,  name: "Zone 4",  power: false, mute: false, dnd: false, source: 1, volume: 0, treble: 0, bass: 0, balance: 0, sources: new Map()});
-        zones.set(Zone._05, {number: 5,  name: "Zone 5",  power: false, mute: false, dnd: false, source: 1, volume: 0, treble: 0, bass: 0, balance: 0, sources: new Map()});
-        zones.set(Zone._06, {number: 6,  name: "Zone 6",  power: false, mute: false, dnd: false, source: 1, volume: 0, treble: 0, bass: 0, balance: 0, sources: new Map()});
-        zones.set(Zone._07, {number: 7,  name: "Zone 7",  power: false, mute: false, dnd: false, source: 1, volume: 0, treble: 0, bass: 0, balance: 0, sources: new Map()});
-        zones.set(Zone._08, {number: 8,  name: "Zone 8",  power: false, mute: false, dnd: false, source: 1, volume: 0, treble: 0, bass: 0, balance: 0, sources: new Map()});
-        zones.set(Zone._09, {number: 9,  name: "Zone 9",  power: false, mute: false, dnd: false, source: 1, volume: 0, treble: 0, bass: 0, balance: 0, sources: new Map()});
-        zones.set(Zone._10, {number: 10, name: "Zone 10", power: false, mute: false, dnd: false, source: 1, volume: 0, treble: 0, bass: 0, balance: 0, sources: new Map()});
-        zones.set(Zone._11, {number: 11, name: "Zone 11", power: false, mute: false, dnd: false, source: 1, volume: 0, treble: 0, bass: 0, balance: 0, sources: new Map()});
-        zones.set(Zone._12, {number: 12, name: "Zone 12", power: false, mute: false, dnd: false, source: 1, volume: 0, treble: 0, bass: 0, balance: 0, sources: new Map()});
+        const zones = this.initializeZones();
 
         this.Status = {
             id: '',
@@ -95,6 +83,29 @@ export default class Lync {
                 artist: ''
             }
         }
+    }
+
+    private initializeZones(): Map<Zone, StatusZone> {
+        const zones = new Map<Zone, StatusZone>();
+        const zoneValues = [Zone._01, Zone._02, Zone._03, Zone._04, Zone._05, Zone._06, Zone._07, Zone._08, Zone._09, Zone._10, Zone._11, Zone._12];
+        
+        zoneValues.forEach((zoneEnum, index) => {
+            zones.set(zoneEnum, {
+                number: index + 1,
+                name: `Zone ${index + 1}`,
+                power: false,
+                mute: false,
+                dnd: false,
+                source: 1,
+                volume: 0,
+                treble: 0,
+                bass: 0,
+                balance: 0,
+                sources: new Map()
+            });
+        });
+        
+        return zones;
     }
 
     private async init() {
@@ -194,53 +205,100 @@ export default class Lync {
         this.LC.send_command(Protocol.set_party_mode_number(source));
     }
 
-    public Zone_Power(zone: Zone, on: boolean) {
-        this.LC.send_command(Protocol.set_zone_power(zone, on));
+    public async Zone_Power(zone: Zone, on: boolean): Promise<void> {
+        try {
+            await this.LC.send_command(Protocol.set_zone_power(zone, on));
+        } catch (error) {
+            console.error(`Failed to set zone ${zone} power:`, error);
+            throw error;
+        }
     }
 
-    public Zone_DND(zone: Zone, on: boolean) {
-        this.LC.send_command(Protocol.set_dnd(zone, on));
-        this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+    public async Zone_DND(zone: Zone, on: boolean): Promise<void> {
+        try {
+            await this.LC.send_command(Protocol.set_dnd(zone, on));
+            await this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+        } catch (error) {
+            console.error(`Failed to set zone ${zone} DND:`, error);
+            throw error;
+        }
     }
 
-    public Zone_Name(zone: Zone, name: string) {
-        this.LC.send_command(Protocol.set_zone_name(zone, name));
-        this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+    public async Zone_Name(zone: Zone, name: string): Promise<void> {
+        try {
+            await this.LC.send_command(Protocol.set_zone_name(zone, name));
+            await this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+        } catch (error) {
+            console.error(`Failed to set zone ${zone} name:`, error);
+            throw error;
+        }
     }
 
-    public Zone_Source(zone: Zone, source: Source) {
-        this.LC.send_command(Protocol.set_source_number(zone, source));
+    public async Zone_Source(zone: Zone, source: Source): Promise<void> {
+        try {
+            await this.LC.send_command(Protocol.set_source_number(zone, source));
+        } catch (error) {
+            console.error(`Failed to set zone ${zone} source:`, error);
+            throw error;
+        }
     }
 
-    public Zone_Volume(zone: Zone, volume: number) {
-        this.LC.send_command(Protocol.set_volume(zone, volume));
-        console.log('Zone_Volume', zone, this.Status.zones.get(zone)!.source);
-        this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+    public async Zone_Volume(zone: Zone, volume: number): Promise<void> {
+        try {
+            await this.LC.send_command(Protocol.set_volume(zone, volume));
+            await this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+        } catch (error) {
+            console.error(`Failed to set zone ${zone} volume:`, error);
+            throw error;
+        }
     }
 
-    public Zone_Mute(zone: Zone, on: boolean) {
-        this.LC.send_command(Protocol.set_mute(zone, on));
-        this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+    public async Zone_Mute(zone: Zone, on: boolean): Promise<void> {
+        try {
+            await this.LC.send_command(Protocol.set_mute(zone, on));
+            await this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+        } catch (error) {
+            console.error(`Failed to set zone ${zone} mute:`, error);
+            throw error;
+        }
     }
 
-    public Zone_Bass(zone: Zone, bass: number) {
-        this.LC.send_command(Protocol.set_bass(zone, bass));
-        this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+    public async Zone_Bass(zone: Zone, bass: number): Promise<void> {
+        try {
+            await this.LC.send_command(Protocol.set_bass(zone, bass));
+            await this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+        } catch (error) {
+            console.error(`Failed to set zone ${zone} bass:`, error);
+            throw error;
+        }
     }
 
-    public Zone_Treble(zone: Zone, treble: number) {
-        this.LC.send_command(Protocol.set_treble(zone, treble));
-        this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+    public async Zone_Treble(zone: Zone, treble: number): Promise<void> {
+        try {
+            await this.LC.send_command(Protocol.set_treble(zone, treble));
+            await this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+        } catch (error) {
+            console.error(`Failed to set zone ${zone} treble:`, error);
+            throw error;
+        }
     }
 
-    public Zone_Balance(zone: Zone, balance: number) {
-        this.LC.send_command(Protocol.set_balance(zone, balance));
-        this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+    public async Zone_Balance(zone: Zone, balance: number): Promise<void> {
+        try {
+            await this.LC.send_command(Protocol.set_balance(zone, balance));
+            await this.Zone_Source(zone, this.Status.zones.get(zone)!.source); // Settings require re-setting source to take
+        } catch (error) {
+            console.error(`Failed to set zone ${zone} balance:`, error);
+            throw error;
+        }
     }
 
-    public Zone_Source_Name(zone: Zone, source: Source, name: string) {
-        this.LC.send_command(Protocol.set_zone_source_name(zone, source, name));
+    public async Zone_Source_Name(zone: Zone, source: Source, name: string): Promise<void> {
+        try {
+            await this.LC.send_command(Protocol.set_zone_source_name(zone, source, name));
+        } catch (error) {
+            console.error(`Failed to set zone ${zone} source name:`, error);
+            throw error;
+        }
     }
 }
-
-// const LC = new Connector('10.0.0.25', 10006);

@@ -24,4 +24,14 @@ if (isNaN(lyncPort)) {
 console.log(`Connecting to MQTT broker: ${mqttBrokerUrl}`);
 console.log(`Connecting to Lync device: ${lyncHost}:${lyncPort}`);
 
-LyncMQTTClient.CreateClient(mqttBrokerUrl, lyncHost, lyncPort);
+async function main() {
+    try {
+        await LyncMQTTClient.CreateClient(mqttBrokerUrl, lyncHost, lyncPort);
+        console.log('Client initialized successfully');
+    } catch (error) {
+        console.error('Failed to initialize client:', error);
+        process.exit(1);
+    }
+}
+
+main();

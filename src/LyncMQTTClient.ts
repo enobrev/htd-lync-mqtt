@@ -24,7 +24,27 @@ export default class LyncMQTTClient {
         });
 
         this.client.on('message', (topic, message) => {
-            this.handleMessage(topic, message.toString());
+            this.handleMessage(topic, message.toString()).catch(error => {
+                console.error('Error in message handler:', error);
+            });
+        });
+
+        this.client.on('error', (error) => {
+            console.error('MQTT connection error:', error);
+        });
+
+        this.client.on('close', () => {
+            console.log('MQTT connection closed');
+            this.connected = false;
+        });
+
+        this.client.on('reconnect', () => {
+            console.log('MQTT reconnecting...');
+        });
+
+        this.client.on('offline', () => {
+            console.log('MQTT client offline');
+            this.connected = false;
         });
 
         this.Lync.events.on('socket:connected', this.lync_socket_connected.bind(this));
@@ -47,7 +67,7 @@ export default class LyncMQTTClient {
             'lync/set/zones/+/source',
             'lync/set/zones/+/volume',
             'lync/set/zones/+/treble',
-            'lync/set/zones/+/base',
+            'lync/set/zones/+/bass',
             'lync/set/zones/+/balance',
             // 'lync/set/zones/+/source/+/name'
         ];
@@ -55,35 +75,39 @@ export default class LyncMQTTClient {
         topics.forEach(topic => this.client.subscribe(topic));
     }
 
-    private handleMessage(topic: string, message: string) {
+    private async handleMessage(topic: string, message: string) {
         console.log(`Received message on ${topic}: ${message}`);
 
-        if (topic.startsWith('lync/set/mp3/')) {
-            switch(topic) {
-                case 'lync/set/mp3/stop':    this.Lync.MP3_Stop();      break;
-                case 'lync/set/mp3/play':    this.Lync.MP3_Play();      break;
-                case 'lync/set/mp3/forward': this.Lync.MP3_Forward();   break;
-                case 'lync/set/mp3/back':    this.Lync.MP3_Back();      break;
-            }
-        } else if (topic.startsWith('lync/set/zones/')) {
-            const match = topic.match(/lync\/set\/zones\/(\d{1,2})\/(\w+)/);
-            // console.log('MATCH', match)
-            if (match) {
-                const zone = parseInt(match[1], 10);
-                const parameter = match[2];
+        try {
+            if (topic.startsWith('lync/set/mp3/')) {
+                switch(topic) {
+                    case 'lync/set/mp3/stop':    this.Lync.MP3_Stop();      break;
+                    case 'lync/set/mp3/play':    this.Lync.MP3_Play();      break;
+                    case 'lync/set/mp3/forward': this.Lync.MP3_Forward();   break;
+                    case 'lync/set/mp3/back':    this.Lync.MP3_Back();      break;
+                }
+            } else if (topic.startsWith('lync/set/zones/')) {
+                const match = topic.match(/lync\/set\/zones\/(\d{1,2})\/(\w+)/);
+                // console.log('MATCH', match)
+                if (match) {
+                    const zone = parseInt(match[1], 10);
+                    const parameter = match[2];
 
-                switch(parameter) {
-                    case 'name':    this.Lync.Zone_Name(zone, message);                  break;
-                    case 'power':   this.Lync.Zone_Power(zone, message === '1');         break;
-                    case 'mute':    this.Lync.Zone_Mute(zone, message === '1');          break;
-                    case 'dnd':     this.Lync.Zone_DND(zone, message === '1');           break;
-                    case 'source':  this.Lync.Zone_Source(zone, parseInt(message, 10));  break;
-                    case 'volume':  this.Lync.Zone_Volume(zone, parseInt(message, 10));  break;
-                    case 'treble':  this.Lync.Zone_Treble(zone, parseInt(message, 10));  break;
-                    case 'bass':    this.Lync.Zone_Bass(zone, parseInt(message, 10));    break;
-                    case 'balance': this.Lync.Zone_Balance(zone, parseInt(message, 10)); break;
+                    switch(parameter) {
+                        case 'name':    await this.Lync.Zone_Name(zone, message);                  break;
+                        case 'power':   await this.Lync.Zone_Power(zone, message === '1');         break;
+                        case 'mute':    await this.Lync.Zone_Mute(zone, message === '1');          break;
+                        case 'dnd':     await this.Lync.Zone_DND(zone, message === '1');           break;
+                        case 'source':  await this.Lync.Zone_Source(zone, parseInt(message, 10));  break;
+                        case 'volume':  await this.Lync.Zone_Volume(zone, parseInt(message, 10));  break;
+                        case 'treble':  await this.Lync.Zone_Treble(zone, parseInt(message, 10));  break;
+                        case 'bass':    await this.Lync.Zone_Bass(zone, parseInt(message, 10));    break;
+                        case 'balance': await this.Lync.Zone_Balance(zone, parseInt(message, 10)); break;
+                    }
                 }
             }
+        } catch (error) {
+            console.error(`Error handling message for topic ${topic}:`, error);
         }
     }
 
@@ -121,7 +145,20 @@ export default class LyncMQTTClient {
     }
 
     // Method to close the MQTT connection
-    public close() {
-        this.client.end();
+    public async close(): Promise<void> {
+        return new Promise((resolve) => {
+            if (this.connected) {
+                this.client.end(false, {}, () => {
+                    console.log('MQTT client closed gracefully');
+                    resolve();
+                });
+            } else {
+                resolve();
+            }
+        });
+    }
+
+    public isConnected(): boolean {
+        return this.connected;
     }
 }

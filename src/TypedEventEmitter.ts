@@ -24,4 +24,31 @@ export default class TypedEventEmitter<TEvents extends Record<string, any>> {
     ) {
         this.emitter.off(eventName, handler as any)
     }
+
+    once<TEventName extends keyof TEvents & string>(
+        eventName: TEventName,
+        handler: (...eventArg: TEvents[TEventName]) => void
+    ) {
+        this.emitter.once(eventName, handler as any)
+    }
+
+    removeAllListeners<TEventName extends keyof TEvents & string>(
+        eventName?: TEventName
+    ) {
+        if (eventName) {
+            this.emitter.removeAllListeners(eventName)
+        } else {
+            this.emitter.removeAllListeners()
+        }
+    }
+
+    listenerCount<TEventName extends keyof TEvents & string>(
+        eventName: TEventName
+    ): number {
+        return this.emitter.listenerCount(eventName)
+    }
+
+    eventNames(): (keyof TEvents)[] {
+        return this.emitter.eventNames() as (keyof TEvents)[]
+    }
 }
