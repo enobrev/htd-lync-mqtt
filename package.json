@@ -6,6 +6,7 @@
   "scripts": {
     "test": "vitest",
     "build": "tsc",
+    "start": "tsx ./src/index.ts",
     "preview": "vite preview",
     "dev": "tsx ./src/index.ts"
   },
