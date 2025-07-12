@@ -22,6 +22,7 @@ This is an MQTT bridge for HTD Lync home audio systems, written in TypeScript. T
    - Subscribes to MQTT control topics (`lync/set/*`)
    - Publishes device state to MQTT status topics (`lync/zones/*`, `lync/mp3/*`)
    - Handles bidirectional message translation between MQTT and Lync protocols
+   - Publishes Home Assistant MQTT discovery messages for automatic device detection
 
 2. **Lync** (`src/Lync.ts`) - HTD Lync device interface that:
    - Manages TCP connection to HTD Lync controller using htd-lync library
@@ -56,6 +57,10 @@ The application requires environment variables for configuration. All environmen
 - `LYNC_HOST` - HTD Lync device IP address (e.g., `10.0.0.25`)
 - `LYNC_PORT` - HTD Lync device port (e.g., `10006`)
 
+**Optional Environment Variables:**
+- `HA_DISCOVERY_ENABLED` - Enable/disable Home Assistant MQTT discovery (default: `true`)
+- `HA_DISCOVERY_PREFIX` - MQTT discovery prefix (default: `homeassistant`)
+
 **Setup:**
 1. Copy `.env.example` to `.env`
 2. Modify the values for your environment
@@ -70,3 +75,29 @@ The application will validate all required environment variables on startup and 
 - The project uses pnpm for package management
 - Device supports 12 zones and 18 sources
 - MP3 player functionality is built into the HTD Lync device
+
+## Home Assistant Integration
+
+The application includes automatic Home Assistant MQTT discovery support. When enabled, it publishes discovery messages for:
+
+**Per Zone (12 zones):**
+- Power switch
+- Mute switch  
+- Do Not Disturb (DND) switch
+- Volume number control (0-60)
+- Treble adjustment (-10 to +10)
+- Bass adjustment (-10 to +10)
+- Balance adjustment (-10 to +10)
+- Source selection (1-18)
+- Zone name sensor
+
+**MP3 Player:**
+- Play button
+- Stop button
+- Next track button
+- Previous track button
+- Repeat switch
+- Artist sensor
+- File sensor
+
+Discovery messages are published on MQTT connect and use retained messages for persistence. Each zone appears as a separate device in Home Assistant with the main HTD Lync device as the parent.

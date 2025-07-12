@@ -12,8 +12,8 @@ importers:
         specifier: ^17.2.0
         version: 17.2.0
       htd-lync:
-        specifier: ^0.1.3
-        version: 0.1.3
+        specifier: ^0.1.4
+        version: 0.1.4
       mqtt:
         specifier: ^5.13.2
         version: 5.13.2
@@ -451,8 +451,8 @@ packages:
   help-me@5.0.0:
     resolution: {integrity: sha512-7xgomUX6ADmcYzFik0HzAxh/73YlKR9bmFzf51CZwR+b6YtzU2m0u49hQCqV6SvlqIqsaxovfwdvbnsw3b/zpg==}
 
-  htd-lync@0.1.3:
-    resolution: {integrity: sha512-AajrkB0QflXhFw5JyQI5ylET8ld4jO2ThCn9vjyoeKMgseKoKSYvJfzDiScQfYLVSbqnf8+iPDqr/h65GT1unw==}
+  htd-lync@0.1.4:
+    resolution: {integrity: sha512-BXMqAiLiQ9IDmDiWINkmfgpRFTY+nb9i4tAnjscToFghbh20BfdSwYgtT5l6ELIN8NcjTXxzohSx5sJtUgufrA==}
 
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
@@ -1067,7 +1067,7 @@ snapshots:
 
   help-me@5.0.0: {}
 
-  htd-lync@0.1.3:
+  htd-lync@0.1.4:
     dependencies:
       promise-socket: 8.0.0
 

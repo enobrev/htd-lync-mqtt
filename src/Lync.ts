@@ -236,6 +236,7 @@ export default class Lync {
 
     public async Zone_Source(zone: Zone, source: Source): Promise<void> {
         try {
+            console.log('Zone_Source', 'Zone', zone, 'Source', source, 'Command', Protocol.set_source_number(zone, source));
             await this.LC.send_command(Protocol.set_source_number(zone, source));
         } catch (error) {
             console.error(`Failed to set zone ${zone} source:`, error);

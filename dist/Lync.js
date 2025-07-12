@@ -1,6 +1,6 @@
-import Connector from "htd-lync/dist/Connector.js";
-import Protocol, { MP3, Zone } from "htd-lync/dist/Protocol.js";
-import TypedEventEmitter from "./TypedEventEmitter.js";
+import Connector from "htd-lync/dist/Connector";
+import Protocol, { MP3, Zone } from "htd-lync/dist/Protocol";
+import TypedEventEmitter from "./TypedEventEmitter";
 export default class Lync {
     LC;
     Status;
