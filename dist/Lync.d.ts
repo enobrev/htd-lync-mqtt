@@ -1,5 +1,5 @@
-import { PartySource, Source, Zone } from "htd-lync/dist/Protocol";
-import TypedEventEmitter from "./TypedEventEmitter";
+import { PartySource, Source, Zone } from "htd-lync";
+import TypedEventEmitter from "./TypedEventEmitter.js";
 export interface StatusZone {
     number: number;
     name: string;

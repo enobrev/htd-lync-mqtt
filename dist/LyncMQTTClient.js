@@ -1,5 +1,5 @@
 import { connect } from 'mqtt';
-import Lync from "./Lync";
+import Lync from "./Lync.js";
 export default class LyncMQTTClient {
     client;
     Lync;
@@ -188,8 +188,10 @@ export default class LyncMQTTClient {
     async handleSourceNameCommand(zone, sourceName) {
         // Find the source number by name
         const zoneInfo = this.Lync.Status.zones.get(zone);
-        if (!zoneInfo)
+        if (!zoneInfo) {
+            console.warn(`Zone ${zone} not found`);
             return;
+        }
         let sourceNumber;
         for (const [num, name] of zoneInfo.sources) {
             if (name === sourceName) {

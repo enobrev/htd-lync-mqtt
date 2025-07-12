@@ -13,6 +13,14 @@ This is an MQTT bridge for HTD Lync home audio systems, written in TypeScript. T
 - `npm test` - Run tests using vitest  
 - `npm run preview` - Run vite preview server
 
+## Docker & Deployment Commands
+
+- `npm run build` - Build TypeScript source
+- `docker build -t htd-lync-mqtt:latest .` - Build Docker container
+- `docker run -d --name htd-lync-mqtt --env-file .env htd-lync-mqtt:latest` - Run container locally
+- `nomad job run nomad.hcl` - Deploy to Nomad cluster
+- `./deploy.sh` - Complete build-to-deploy pipeline (recommended)
+
 ## Architecture
 
 ### Core Components
@@ -67,6 +75,24 @@ The application requires environment variables for configuration. All environmen
 3. The `.env` file will be automatically loaded at application startup
 
 The application will validate all required environment variables on startup and provide clear error messages for any missing values.
+
+## Containerization
+
+The project includes Docker support for containerized deployment:
+
+### Docker Configuration
+- **Multi-stage build** using Node.js 22 Alpine for optimized image size
+- **Production runtime** with non-root user for security
+- **tsx runtime** to handle ES module compatibility issues with htd-lync library
+- **pnpm** for efficient package management
+
+### Container Files
+- `Dockerfile` - Multi-stage build configuration
+- `.dockerignore` - Excludes unnecessary files from build context
+- `nomad.hcl` - Nomad job specification for orchestrated deployment
+
+### ES Module Compatibility
+The application uses ES modules but the htd-lync dependency has import resolution issues. The container uses `tsx` instead of `node` to handle these compatibility issues in production.
 
 ## Development Notes
 

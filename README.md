@@ -77,6 +77,152 @@ npm start
 npm run build
 ```
 
+## Docker Deployment
+
+### Building the Container
+```bash
+docker build -t htd-lync-mqtt:latest .
+```
+
+### Running with Docker
+
+#### Using Pre-built Image from DockerHub
+```bash
+docker run -d \
+  --name htd-lync-mqtt \
+  -e MQTT_BROKER_URL=mqtt://10.0.0.10 \
+  -e LYNC_HOST=10.0.0.25 \
+  -e LYNC_PORT=10006 \
+  -e HA_DISCOVERY_ENABLED=true \
+  -e HA_DISCOVERY_PREFIX=homeassistant \
+  enobrev/htd-lync-mqtt:latest
+```
+
+#### Building Locally
+```bash
+docker build -t htd-lync-mqtt:latest .
+docker run -d \
+  --name htd-lync-mqtt \
+  --env-file .env \
+  htd-lync-mqtt:latest
+```
+
+### Using Docker Compose
+
+#### With Pre-built Image
+```yaml
+version: '3.8'
+services:
+  htd-lync-mqtt:
+    image: enobrev/htd-lync-mqtt:latest
+    container_name: htd-lync-mqtt
+    environment:
+      - MQTT_BROKER_URL=mqtt://10.0.0.10
+      - LYNC_HOST=10.0.0.25
+      - LYNC_PORT=10006
+      - HA_DISCOVERY_ENABLED=true
+      - HA_DISCOVERY_PREFIX=homeassistant
+    restart: unless-stopped
+```
+
+#### Building from Source
+```yaml
+version: '3.8'
+services:
+  htd-lync-mqtt:
+    build: .
+    container_name: htd-lync-mqtt
+    environment:
+      - MQTT_BROKER_URL=mqtt://10.0.0.10
+      - LYNC_HOST=10.0.0.25
+      - LYNC_PORT=10006
+      - HA_DISCOVERY_ENABLED=true
+      - HA_DISCOVERY_PREFIX=homeassistant
+    restart: unless-stopped
+```
+
+## Nomad Deployment
+
+### Prerequisites
+- Nomad cluster with Docker driver enabled
+- Access to DockerHub or image available locally
+- Consul KV store for configuration
+
+### Configuration via Consul KV
+Set the following keys in Consul:
+```bash
+# Required configuration
+consul kv put htd-lync/lync_host "10.0.0.25"
+consul kv put htd-lync/lync_port "10006"
+
+# Optional configuration (with defaults)
+consul kv put htd-lync/ha_discovery_enabled "true"
+consul kv put htd-lync/ha_discovery_prefix "homeassistant"
+
+# Fallback MQTT broker URL (used if mosquitto service not found)
+consul kv put htd-lync/mqtt_broker_url "mqtt://10.0.0.10"
+```
+
+**Note:** The MQTT broker URL is automatically discovered by looking up the `mosquitto` service in Nomad's service registry. The Consul KV `htd-lync/mqtt_broker_url` is only used as a fallback if the mosquitto service is not found.
+
+### Deploy to Nomad
+```bash
+# Deploy the job
+nomad job run nomad.hcl
+
+# Check status
+nomad job status htd-lync-mqtt
+
+# View logs
+nomad alloc logs -f <allocation-id>
+```
+
+### Nomad Job Configuration
+The included `nomad.hcl` provides:
+- Service deployment with restart policies
+- **Automatic MQTT broker discovery** via `mosquitto` service lookup
+- Environment variables from Consul KV with fallback support
+- Health checks via TCP probe
+- Resource allocation (100 CPU, 128MB RAM)
+- Service discovery registration
+
+### Service Discovery
+The Nomad job automatically discovers the MQTT broker by:
+1. Looking up the `mosquitto` service in Nomad's service registry
+2. Using the first available instance's IP and port
+3. Falling back to `htd-lync/mqtt_broker_url` from Consul KV if service not found
+
+This eliminates the need to manually configure MQTT broker endpoints when using Nomad service discovery.
+
+## Complete Deployment Pipeline
+
+**One-command deployment (recommended):**
+```bash
+./deploy.sh
+```
+
+The deployment script automatically:
+1. Builds TypeScript source (`npm run build`)
+2. Builds Docker container with latest and version tags
+3. Tags images for DockerHub (`enobrev/htd-lync-mqtt`)
+4. Pushes to DockerHub registry
+5. Updates Nomad deployment
+6. Shows deployment status and helpful commands
+
+**Manual step-by-step deployment:**
+```bash
+# Build source and container
+npm run build
+docker build -t htd-lync-mqtt:latest .
+
+# Tag and push to DockerHub  
+docker tag htd-lync-mqtt:latest enobrev/htd-lync-mqtt:latest
+docker push enobrev/htd-lync-mqtt:latest
+
+# Deploy to Nomad
+nomad job run nomad.hcl
+```
+
 ## MQTT Topics
 
 ### Status Topics (Published by Bridge)

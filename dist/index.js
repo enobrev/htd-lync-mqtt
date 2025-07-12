@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import LyncMQTTClient from "./LyncMQTTClient";
+import LyncMQTTClient from "./LyncMQTTClient.js";
 // Check for required environment variables
 const requiredEnvVars = ['MQTT_BROKER_URL', 'LYNC_HOST', 'LYNC_PORT'];
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);

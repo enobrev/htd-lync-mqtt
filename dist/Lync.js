@@ -1,6 +1,7 @@
-import Connector from "htd-lync/dist/Connector";
-import Protocol, { MP3, Zone } from "htd-lync/dist/Protocol";
-import TypedEventEmitter from "./TypedEventEmitter";
+import { MP3, Zone } from "htd-lync";
+import Connector from "htd-lync/dist/Connector.js";
+import Protocol from "htd-lync/dist/Protocol.js";
+import TypedEventEmitter from "./TypedEventEmitter.js";
 export default class Lync {
     LC;
     Status;
@@ -156,6 +157,7 @@ export default class Lync {
     }
     async Zone_Source(zone, source) {
         try {
+            console.log('Zone_Source', 'Zone', zone, 'Source', source, 'Command', Protocol.set_source_number(zone, source));
             await this.LC.send_command(Protocol.set_source_number(zone, source));
         }
         catch (error) {

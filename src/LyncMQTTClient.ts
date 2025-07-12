@@ -1,6 +1,6 @@
 import { connect, MqttClient as MQTT } from 'mqtt';
-import Lync, {StatusMP3, StatusZone} from "./Lync";
-import {Source} from "htd-lync/dist/Protocol";
+import Lync, {StatusMP3, StatusZone} from "./Lync.js";
+import {Source} from "htd-lync";
 
 export default class LyncMQTTClient {
     private client: MQTT;

@@ -1,5 +1,6 @@
-import Connector from "htd-lync/dist/Connector";
-import Protocol, {MP3, PartySource, Source, Zone} from "htd-lync/dist/Protocol";
+import {MP3, PartySource, Source, Zone} from "htd-lync";
+import Connector from "htd-lync/dist/Connector.js";
+import Protocol from "htd-lync/dist/Protocol.js";
 import type {
     Response_Id,
     Response_MP3_Artist,
@@ -10,7 +11,7 @@ import type {
     Response_Zone_Name,
     Response_System
 } from "htd-lync";
-import TypedEventEmitter from "./TypedEventEmitter";
+import TypedEventEmitter from "./TypedEventEmitter.js";
 
 
 export interface StatusZone {
@@ -113,7 +114,7 @@ export default class Lync {
             this.events.emit('socket:connected');
         });
 
-        this.LC.events.on('socket:error', (error) => {
+        this.LC.events.on('socket:error', (error: Error) => {
             this.events.emit('socket:error', error);
         });
 

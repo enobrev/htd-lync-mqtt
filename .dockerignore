@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+.env
+.env.local
+.env.*.local
+dist
+coverage
+.vscode
+.idea
+*.log
+.git
+README.md
+CLAUDE.md
+vite.config.ts
