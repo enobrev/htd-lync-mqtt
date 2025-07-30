@@ -28,8 +28,8 @@ job "htd-lync-mqtt" {
       template {
         data = <<EOH
 MQTT_BROKER_URL=mqtt://10.0.0.10:1883
-LYNC_HOST={{ key "htd-lync/lync_host" }}
-LYNC_PORT={{ key "htd-lync/lync_port" }}
+LYNC_HOST=10.0.0.25
+LYNC_PORT=10006
 HA_DISCOVERY_ENABLED=true
 HA_DISCOVERY_PREFIX=homeassistant
 EOH
