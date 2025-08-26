@@ -2,6 +2,11 @@ job "htd-lync-mqtt" {
   type        = "service"
   region      = "local"
   datacenters = ["hamlin"]
+
+  constraint {
+    attribute = "${node.class}"
+    value     = "server"
+  }
   
   group "htd-lync" {
     count = 1
