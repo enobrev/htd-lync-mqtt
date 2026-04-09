@@ -38,7 +38,7 @@ echo
 # Step 2: Build Docker container
 echo -e "${YELLOW}🐳 Building Docker container...${NC}"
 docker build -t htd-lync-mqtt:latest .
-docker build -t htd-lync-mqtt:${VERSION} .
+docker tag htd-lync-mqtt:latest htd-lync-mqtt:${VERSION}
 echo -e "${GREEN}✅ Docker build complete${NC}"
 echo
 
