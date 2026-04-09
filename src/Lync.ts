@@ -1,6 +1,4 @@
-import {MP3, PartySource, Source, Zone} from "htd-lync";
-import Connector from "htd-lync/dist/Connector.js";
-import Protocol from "htd-lync/dist/Protocol.js";
+import {Connector, MP3, PartySource, Protocol, Source, Zone} from "htd-lync";
 import type {
     Response_Id,
     Response_MP3_Artist,
