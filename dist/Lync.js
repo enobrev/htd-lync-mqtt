@@ -1,6 +1,4 @@
-import { MP3, Zone } from "htd-lync";
-import Connector from "htd-lync/dist/Connector.js";
-import Protocol from "htd-lync/dist/Protocol.js";
+import { Connector, MP3, Protocol, Zone } from "htd-lync";
 import TypedEventEmitter from "./TypedEventEmitter.js";
 export default class Lync {
     LC;
@@ -17,7 +15,7 @@ export default class Lync {
         const zones = this.initializeZones();
         this.Status = {
             id: '',
-            sources: new Map,
+            sources: new Map(),
             zones,
             all_on: false,
             all_off: false,
@@ -111,6 +109,9 @@ export default class Lync {
         await this.LC.send_command(Protocol.set_echo_mode(true));
         await this.LC.send_command(Protocol.get_status_all());
     }
+    disconnect() {
+        this.LC.disconnect();
+    }
     MP3_Stop() {
         this.LC.send_command(Protocol.mp3(MP3.Stop));
     }
@@ -136,9 +137,12 @@ export default class Lync {
         }
     }
     async Zone_DND(zone, on) {
+        const zoneInfo = this.Status.zones.get(zone);
+        if (!zoneInfo)
+            return;
         try {
             await this.LC.send_command(Protocol.set_dnd(zone, on));
-            await this.Zone_Source(zone, this.Status.zones.get(zone).source); // Settings require re-setting source to take
+            await this.Zone_Source(zone, zoneInfo.source); // Settings require re-setting source to take
         }
         catch (error) {
             console.error(`Failed to set zone ${zone} DND:`, error);
@@ -146,9 +150,12 @@ export default class Lync {
         }
     }
     async Zone_Name(zone, name) {
+        const zoneInfo = this.Status.zones.get(zone);
+        if (!zoneInfo)
+            return;
         try {
             await this.LC.send_command(Protocol.set_zone_name(zone, name));
-            await this.Zone_Source(zone, this.Status.zones.get(zone).source); // Settings require re-setting source to take
+            await this.Zone_Source(zone, zoneInfo.source); // Settings require re-setting source to take
         }
         catch (error) {
             console.error(`Failed to set zone ${zone} name:`, error);
@@ -157,7 +164,6 @@ export default class Lync {
     }
     async Zone_Source(zone, source) {
         try {
-            console.log('Zone_Source', 'Zone', zone, 'Source', source, 'Command', Protocol.set_source_number(zone, source));
             await this.LC.send_command(Protocol.set_source_number(zone, source));
         }
         catch (error) {
@@ -166,9 +172,12 @@ export default class Lync {
         }
     }
     async Zone_Volume(zone, volume) {
+        const zoneInfo = this.Status.zones.get(zone);
+        if (!zoneInfo)
+            return;
         try {
             await this.LC.send_command(Protocol.set_volume(zone, volume));
-            await this.Zone_Source(zone, this.Status.zones.get(zone).source); // Settings require re-setting source to take
+            await this.Zone_Source(zone, zoneInfo.source); // Settings require re-setting source to take
         }
         catch (error) {
             console.error(`Failed to set zone ${zone} volume:`, error);
@@ -176,9 +185,12 @@ export default class Lync {
         }
     }
     async Zone_Mute(zone, on) {
+        const zoneInfo = this.Status.zones.get(zone);
+        if (!zoneInfo)
+            return;
         try {
             await this.LC.send_command(Protocol.set_mute(zone, on));
-            await this.Zone_Source(zone, this.Status.zones.get(zone).source); // Settings require re-setting source to take
+            await this.Zone_Source(zone, zoneInfo.source); // Settings require re-setting source to take
         }
         catch (error) {
             console.error(`Failed to set zone ${zone} mute:`, error);
@@ -186,9 +198,12 @@ export default class Lync {
         }
     }
     async Zone_Bass(zone, bass) {
+        const zoneInfo = this.Status.zones.get(zone);
+        if (!zoneInfo)
+            return;
         try {
             await this.LC.send_command(Protocol.set_bass(zone, bass));
-            await this.Zone_Source(zone, this.Status.zones.get(zone).source); // Settings require re-setting source to take
+            await this.Zone_Source(zone, zoneInfo.source); // Settings require re-setting source to take
         }
         catch (error) {
             console.error(`Failed to set zone ${zone} bass:`, error);
@@ -196,9 +211,12 @@ export default class Lync {
         }
     }
     async Zone_Treble(zone, treble) {
+        const zoneInfo = this.Status.zones.get(zone);
+        if (!zoneInfo)
+            return;
         try {
             await this.LC.send_command(Protocol.set_treble(zone, treble));
-            await this.Zone_Source(zone, this.Status.zones.get(zone).source); // Settings require re-setting source to take
+            await this.Zone_Source(zone, zoneInfo.source); // Settings require re-setting source to take
         }
         catch (error) {
             console.error(`Failed to set zone ${zone} treble:`, error);
@@ -206,9 +224,12 @@ export default class Lync {
         }
     }
     async Zone_Balance(zone, balance) {
+        const zoneInfo = this.Status.zones.get(zone);
+        if (!zoneInfo)
+            return;
         try {
             await this.LC.send_command(Protocol.set_balance(zone, balance));
-            await this.Zone_Source(zone, this.Status.zones.get(zone).source); // Settings require re-setting source to take
+            await this.Zone_Source(zone, zoneInfo.source); // Settings require re-setting source to take
         }
         catch (error) {
             console.error(`Failed to set zone ${zone} balance:`, error);

@@ -20,7 +20,7 @@ export default class LyncMQTTClient {
             if (this.haDiscoveryEnabled) {
                 this.publishHomeAssistantDiscovery();
             }
-            this.Lync.Ready();
+            this.Lync.Ready().catch(err => console.error('Failed to initialize Lync:', err));
         });
         this.client.on('message', (topic, message) => {
             this.handleMessage(topic, message.toString()).catch(error => {
@@ -88,40 +88,50 @@ export default class LyncMQTTClient {
             }
             else if (topic.startsWith('lync/set/zones/')) {
                 const match = topic.match(/lync\/set\/zones\/(\d{1,2})\/(\w+)/);
-                // console.log('MATCH', match)
                 if (match) {
                     const zone = parseInt(match[1], 10);
                     const parameter = match[2];
+                    if (zone < 1 || zone > 12) {
+                        console.warn(`Invalid zone number: ${zone}`);
+                        return;
+                    }
+                    const zoneId = zone;
+                    const numValue = parseInt(message, 10);
                     switch (parameter) {
                         case 'name':
-                            await this.Lync.Zone_Name(zone, message);
+                            await this.Lync.Zone_Name(zoneId, message);
                             break;
                         case 'power':
-                            await this.Lync.Zone_Power(zone, message === '1');
+                            await this.Lync.Zone_Power(zoneId, message === '1');
                             break;
                         case 'mute':
-                            await this.Lync.Zone_Mute(zone, message === '1');
+                            await this.Lync.Zone_Mute(zoneId, message === '1');
                             break;
                         case 'dnd':
-                            await this.Lync.Zone_DND(zone, message === '1');
+                            await this.Lync.Zone_DND(zoneId, message === '1');
                             break;
                         case 'source':
-                            await this.Lync.Zone_Source(zone, parseInt(message, 10));
+                            if (!isNaN(numValue))
+                                await this.Lync.Zone_Source(zoneId, numValue);
                             break;
                         case 'source_name':
-                            await this.handleSourceNameCommand(zone, message);
+                            await this.handleSourceNameCommand(zoneId, message);
                             break;
                         case 'volume':
-                            await this.Lync.Zone_Volume(zone, parseInt(message, 10));
+                            if (!isNaN(numValue))
+                                await this.Lync.Zone_Volume(zoneId, numValue);
                             break;
                         case 'treble':
-                            await this.Lync.Zone_Treble(zone, parseInt(message, 10));
+                            if (!isNaN(numValue))
+                                await this.Lync.Zone_Treble(zoneId, numValue);
                             break;
                         case 'bass':
-                            await this.Lync.Zone_Bass(zone, parseInt(message, 10));
+                            if (!isNaN(numValue))
+                                await this.Lync.Zone_Bass(zoneId, numValue);
                             break;
                         case 'balance':
-                            await this.Lync.Zone_Balance(zone, parseInt(message, 10));
+                            if (!isNaN(numValue))
+                                await this.Lync.Zone_Balance(zoneId, numValue);
                             break;
                     }
                 }
@@ -164,13 +174,15 @@ export default class LyncMQTTClient {
         this.client.publish(`lync/mp3/artist`, mp3.artist, options);
         this.client.publish(`lync/mp3/file`, mp3.file, options);
     }
-    // Method to close the MQTT connection
     async close() {
+        this.Lync.disconnect();
         return new Promise((resolve) => {
             if (this.connected) {
-                this.client.end(false, {}, () => {
-                    console.log('MQTT client closed gracefully');
-                    resolve();
+                this.client.publish('lync/connected/lync', '0', { retain: true }, () => {
+                    this.client.end(false, {}, () => {
+                        console.log('MQTT client closed gracefully');
+                        resolve();
+                    });
                 });
             }
             else {
@@ -186,7 +198,6 @@ export default class LyncMQTTClient {
         this.haDiscoveryPrefix = prefix;
     }
     async handleSourceNameCommand(zone, sourceName) {
-        // Find the source number by name
         const zoneInfo = this.Lync.Status.zones.get(zone);
         if (!zoneInfo) {
             console.warn(`Zone ${zone} not found`);
@@ -369,8 +380,8 @@ export default class LyncMQTTClient {
             command_topic: "lync/set/mp3/back",
             device: mp3Device
         }), { retain: true });
-        // MP3 Repeat Switch
-        this.client.publish(`${this.haDiscoveryPrefix}/switch/htd_lync_mp3/repeat/config`, JSON.stringify({
+        // MP3 Repeat Sensor
+        this.client.publish(`${this.haDiscoveryPrefix}/binary_sensor/htd_lync_mp3/repeat/config`, JSON.stringify({
             name: "Repeat",
             unique_id: "htd_lync_mp3_repeat",
             state_topic: "lync/mp3/repeat",

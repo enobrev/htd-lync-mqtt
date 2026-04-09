@@ -44,6 +44,7 @@ export default class Lync {
     private initializeZones;
     private init;
     Ready(): Promise<void>;
+    disconnect(): void;
     MP3_Stop(): void;
     MP3_Play(): void;
     MP3_Forward(): void;
@@ -52,7 +53,7 @@ export default class Lync {
     Zone_Power(zone: Zone, on: boolean): Promise<void>;
     Zone_DND(zone: Zone, on: boolean): Promise<void>;
     Zone_Name(zone: Zone, name: string): Promise<void>;
-    Zone_Source(zone: Zone, source: Source): Promise<void>;
+    Zone_Source(zone: Zone, source: number): Promise<void>;
     Zone_Volume(zone: Zone, volume: number): Promise<void>;
     Zone_Mute(zone: Zone, on: boolean): Promise<void>;
     Zone_Bass(zone: Zone, bass: number): Promise<void>;

@@ -12,7 +12,7 @@ if (missingEnvVars.length > 0) {
 const mqttBrokerUrl = process.env.MQTT_BROKER_URL;
 const lyncHost = process.env.LYNC_HOST;
 const lyncPort = parseInt(process.env.LYNC_PORT);
-const haDiscoveryEnabled = process.env.HA_DISCOVERY_ENABLED?.toLowerCase() === 'true';
+const haDiscoveryEnabled = process.env.HA_DISCOVERY_ENABLED?.toLowerCase() !== 'false';
 const haDiscoveryPrefix = process.env.HA_DISCOVERY_PREFIX || 'homeassistant';
 if (isNaN(lyncPort)) {
     console.error('Invalid LYNC_PORT value. Must be a valid number.');
@@ -29,6 +29,13 @@ async function main() {
         const client = await LyncMQTTClient.CreateClient(mqttBrokerUrl, lyncHost, lyncPort);
         client.setHomeAssistantDiscovery(haDiscoveryEnabled, haDiscoveryPrefix);
         console.log('Client initialized successfully');
+        const shutdown = async () => {
+            console.log('Shutting down...');
+            await client.close();
+            process.exit(0);
+        };
+        process.on('SIGTERM', shutdown);
+        process.on('SIGINT', shutdown);
     }
     catch (error) {
         console.error('Failed to initialize client:', error);
